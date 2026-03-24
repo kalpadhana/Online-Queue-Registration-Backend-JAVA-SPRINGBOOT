@@ -1,0 +1,21 @@
+package com.ijse.smartqueue.repository;
+
+import com.ijse.smartqueue.entity.QueueEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface QueueRepository extends JpaRepository<QueueEntity, Long> {
+
+    // Get the last issued token/number for a specific service today
+    QueueEntity findTopByService_ServiceIdOrderByQueueNumberDesc(Long serviceId);
+
+    // Get the next customer in line for a specific service
+    List<QueueEntity> findByService_ServiceIdAndStatusOrderByQueueNumberAsc(Long serviceId, String status);
+
+    // Find a specific user's queue history
+    List<QueueEntity> findByUser_UserIdOrderByCreatedTimeDesc(Long userId);
+}
+
