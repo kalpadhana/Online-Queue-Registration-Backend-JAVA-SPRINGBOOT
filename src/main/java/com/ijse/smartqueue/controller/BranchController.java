@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/branches")
+@RequestMapping("/api/v1/branches")
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:5174"}, 
+             methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PATCH})
 public class BranchController {
     private final BranchService branchService;
 

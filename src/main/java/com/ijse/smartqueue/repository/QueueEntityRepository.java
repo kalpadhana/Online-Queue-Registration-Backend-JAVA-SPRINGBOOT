@@ -26,4 +26,7 @@ public interface QueueEntityRepository extends JpaRepository<QueueEntity, Long> 
 
     @Query("SELECT COUNT(q) FROM QueueEntity q WHERE q.branch.branchId = :branchId AND q.status = :status")
     Integer countByBranchIdAndStatus(@Param("branchId") Long branchId, @Param("status") QueueStatus status);
+
+    @Query("SELECT COUNT(q) FROM QueueEntity q WHERE q.branch.branchId = :branchId AND q.status IN (:statuses)")
+    Integer countByBranchIdAndStatusIn(@Param("branchId") Long branchId, @Param("statuses") List<QueueStatus> statuses);
 }

@@ -17,4 +17,3 @@ public class TestController {
         return ResponseEntity.ok(new APIResponse<>(200, "Backend connection successful", "OK"));
     }
 }
-

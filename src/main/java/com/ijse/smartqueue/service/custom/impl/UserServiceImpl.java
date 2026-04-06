@@ -89,6 +89,19 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public UserDTO authenticateUser(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        
+        // Simple password check without encryption for now
+        if (!user.getPassword().equals(password)) {
+            throw new RuntimeException("Invalid email or password");
+        }
+        
+        return convertToDTO(user);
+    }
+
     private UserDTO convertToDTO(User user) {
         UserDTO dto = modelMapper.map(user, UserDTO.class);
         if (user.getPreferredBranch() != null) {

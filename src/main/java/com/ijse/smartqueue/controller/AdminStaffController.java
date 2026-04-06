@@ -14,7 +14,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/admin-staff")
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:5174"}, 
+             methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PATCH})
 public class AdminStaffController {
 
     private final AdminStaffService adminStaffService;

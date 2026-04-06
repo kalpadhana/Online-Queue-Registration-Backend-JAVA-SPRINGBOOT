@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/counter")
+@RequestMapping("/api/v1/counter")
 @CrossOrigin
 public class CounterController {
 

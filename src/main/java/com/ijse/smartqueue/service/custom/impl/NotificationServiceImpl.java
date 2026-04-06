@@ -9,6 +9,7 @@ import com.ijse.smartqueue.repository.NotificationRepository;
 import com.ijse.smartqueue.repository.QueueEntityRepository;
 import com.ijse.smartqueue.repository.UserRepository;
 import com.ijse.smartqueue.service.custom.NotificationService;
+import com.ijse.smartqueue.service.custom.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
     private final QueueEntityRepository queueEntityRepository;
+    private final EmailService emailService;
 
     @Override
     public void createNotification(NotificationDTO notificationDTO) {
@@ -47,6 +49,9 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
 
         notificationRepository.save(notification);
+        
+        // Send email notification
+        sendEmailNotification(user, notificationDTO, queue);
     }
 
     @Override
@@ -86,6 +91,51 @@ public class NotificationServiceImpl implements NotificationService {
                 .isRead(entity.getReadFlag())
                 .createdAt(entity.getCreatedAt())
                 .build();
+    }
+
+    private void sendEmailNotification(User user, NotificationDTO notificationDTO, QueueEntity queue) {
+        try {
+            if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                System.out.println("User email not available, skipping email notification");
+                return;
+            }
+
+            String userName = user.getFullName() != null ? user.getFullName() : user.getEmail();
+            
+            // Check the notification title to determine which email to send
+            if ("Time Ready".equals(notificationDTO.getTitle())) {
+                // Queue called notification
+                if (queue != null) {
+                    emailService.sendQueueCalledEmail(
+                        user.getEmail(),
+                        userName,
+                        queue.getToken(),
+                        queue.getService().getName(),
+                        queue.getBranch().getName()
+                    );
+                }
+            } else if ("Queue Removed".equals(notificationDTO.getTitle())) {
+                // Queue removed notification
+                if (queue != null) {
+                    emailService.sendQueueRemovedEmail(
+                        user.getEmail(),
+                        userName,
+                        queue.getToken(),
+                        notificationDTO.getMessage()
+                    );
+                }
+            } else {
+                // Generic notification
+                emailService.sendSimpleEmail(
+                    user.getEmail(),
+                    notificationDTO.getTitle(),
+                    notificationDTO.getMessage()
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to send email notification: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
 

@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("api/v1/notification")
+@RequestMapping("/api/v1/notification")
 @CrossOrigin
 public class NotificationController {
 
@@ -20,6 +20,12 @@ public class NotificationController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<NotificationDTO>> getNotifications(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationService.getNotificationsByUser(userId));
+    }
+
+    @PostMapping
+    public ResponseEntity<APIResponse<Void>> createNotification(@RequestBody NotificationDTO notificationDTO) {
+        notificationService.createNotification(notificationDTO);
+        return ResponseEntity.ok(new APIResponse<>(200, "Notification created", null));
     }
 
     @PatchMapping("/{id}/read")
