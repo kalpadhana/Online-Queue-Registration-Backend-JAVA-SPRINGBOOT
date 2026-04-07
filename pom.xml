@@ -110,6 +110,13 @@
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Twilio SDK for SMS and Call functionality -->
+        <dependency>
+            <groupId>com.twilio.sdk</groupId>
+            <artifactId>twilio</artifactId>
+            <version>8.10.0</version>
+        </dependency>
     </dependencies>
 
     <build>

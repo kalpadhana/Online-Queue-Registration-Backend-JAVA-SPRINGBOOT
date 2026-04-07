@@ -31,6 +31,7 @@ public class QueueService {
     private final ModelMapper modelMapper;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final TwilioService twilioService;
 
     public QueueDTO joinQueue(QueueRequestDTO request) {
         User user = userRepository.findById(request.getUserId())
@@ -117,16 +118,23 @@ public class QueueService {
     }
 
     /**
-     * Call queue - Update status to CALLED and send email notification to user
+     * Call queue - Update status to CALLED and send email/SMS notification to user
      * @param queueId Queue ID to call
      */
     public void callQueue(Long queueId) {
         try {
+            System.out.println("\n\n╔════════════════════════════════════════════╗");
+            System.out.println("║   🔵 QUEUE SERVICE: callQueue() INVOKED    ║");
+            System.out.println("╚════════════════════════════════════════════╝");
+            System.out.println("📋 Queue ID: " + queueId);
+            System.out.flush();
             System.err.println("\n🔵 START: callQueue invoked for queueId: " + queueId);
             
             QueueEntity queue = queueRepository.findById(queueId)
                     .orElseThrow(() -> new RuntimeException("Queue not found"));
 
+            System.out.println("✅ Queue found - Token: " + queue.getToken());
+            System.out.flush();
             System.err.println("🔵 Queue found - Token: " + queue.getToken());
 
             // Get user and related information
@@ -135,10 +143,14 @@ public class QueueService {
             Branch branch = queue.getBranch();
 
             if (user == null) {
+                System.out.println("❌ ERROR: User is null for queue");
+                System.out.flush();
                 System.err.println("❌ ERROR: User is null for queue");
                 throw new RuntimeException("User not found for queue");
             }
 
+            System.out.println("✅ User found - Email: " + user.getEmail() + ", Name: " + user.getFullName() + ", Phone: " + (user.getPhone() != null ? user.getPhone() : "NULL"));
+            System.out.flush();
             System.err.println("🔵 User found - Email: " + user.getEmail() + ", Name: " + user.getFullName());
 
             // Update queue status to CALLED
@@ -147,6 +159,8 @@ public class QueueService {
             queue.setUpdatedAt(LocalDateTime.now());
             queueRepository.save(queue);
             
+            System.out.println("✅ Queue status updated to CALLED");
+            System.out.flush();
             System.err.println("🔵 Queue status updated to CALLED");
 
             // Send email notification if user has email
@@ -175,6 +189,78 @@ public class QueueService {
                 }
             } else {
                 System.err.println("⚠️ WARNING: User email is null or empty");
+            }
+
+            // Send SMS notification if user has phone number
+            if (user.getPhone() != null && !user.getPhone().isEmpty()) {
+                System.out.println("\n\n");
+                System.out.println("╔════════════════════════════════════════════╗");
+                System.out.println("║        📱 SMS NOTIFICATION SECTION         ║");
+                System.out.println("╚════════════════════════════════════════════╝");
+                System.out.println("✅ User has phone number: " + user.getPhone());
+                System.out.flush();
+                
+                try {
+                    String serviceName = service != null ? service.getName() : "Service";
+                    String branchName = branch != null ? branch.getName() : "Counter";
+                    String phoneNumber = user.getPhone().trim();
+                    
+                    System.out.println("\n📱 ===== SMS SENDING DETAILS =====");
+                    System.out.println("   Raw Phone from DB: " + phoneNumber);
+                    System.out.println("   Phone Length: " + phoneNumber.length());
+                    System.out.println("   Service: " + serviceName);
+                    System.out.println("   Branch: " + branchName);
+                    System.out.println("   Token: " + queue.getToken());
+                    System.out.println("   User ID: " + user.getUserId());
+                    System.out.println("===================================");
+                    System.out.flush();
+                    
+                    System.out.println("\n🔵 Calling twilioService.sendQueueReadySMS()...");
+                    System.out.flush();
+                    
+                    boolean smsSent = twilioService.sendQueueReadySMS(
+                            phoneNumber,
+                            queue.getToken(),
+                            serviceName,
+                            branchName
+                    );
+                    System.out.flush();
+                    
+                    if (smsSent) {
+                        System.out.println("✅✅ SUCCESS: SMS sent to " + phoneNumber);
+                    } else {
+                        System.out.println("❌ SMS FAILED: Could not send SMS to " + phoneNumber);
+                    }
+                    System.out.println("╚════════════════════════════════════════════╝\n");
+                    System.out.flush();
+                    
+                } catch (Exception smsErr) {
+                    System.out.println("❌ SMS EXCEPTION: " + smsErr.getClass().getSimpleName());
+                    System.out.println("   Message: " + smsErr.getMessage());
+                    smsErr.printStackTrace();
+                    System.out.flush();
+                    // Don't throw exception - queue was already called successfully
+                }
+            } else {
+                System.out.println("\n\n");
+                System.out.println("╔════════════════════════════════════════════╗");
+                System.out.println("║        📱 SMS NOTIFICATION SECTION         ║");
+                System.out.println("╚════════════════════════════════════════════╝");
+                System.out.println("⚠️ ❌ WARNING: User phone is NULL or EMPTY");
+                System.out.println("\n❌ SMS NOT SENT - REASON: Missing Phone Number");
+                System.out.println("\n📌 ACTION REQUIRED:");
+                System.out.println("   User: " + user.getFullName() + " (ID: " + user.getUserId() + ")");
+                System.out.println("   Email: " + user.getEmail());
+                System.out.println("   Current Phone: [EMPTY or NULL]");
+                System.out.println("\n💡 SOLUTION:");
+                System.out.println("   1. User must log in to the app");
+                System.out.println("   2. Go to Settings");
+                System.out.println("   3. Click 'Edit Profile'");
+                System.out.println("   4. Enter their phone number (e.g., +94779649968)");
+                System.out.println("   5. Click 'Save Changes'");
+                System.out.println("   6. Then SMS will be sent when they call a queue");
+                System.out.println("╚════════════════════════════════════════════╝\n");
+                System.out.flush();
             }
 
             // Create notification in a separate transaction to prevent rollback issues
