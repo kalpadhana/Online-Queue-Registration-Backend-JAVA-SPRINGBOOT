@@ -2,13 +2,16 @@ package com.ijse.smartqueue.service;
 
 import com.ijse.smartqueue.dto.QueueRequestDTO;
 import com.ijse.smartqueue.dto.QueueDTO;
+import com.ijse.smartqueue.dto.NotificationDTO;
 import com.ijse.smartqueue.entity.*;
 import com.ijse.smartqueue.repository.*;
 import com.ijse.smartqueue.service.custom.EmailService;
+import com.ijse.smartqueue.service.custom.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -27,6 +30,7 @@ public class QueueService {
     private final QueueHistoryRepository historyRepository;
     private final ModelMapper modelMapper;
     private final EmailService emailService;
+    private final NotificationService notificationService;
 
     public QueueDTO joinQueue(QueueRequestDTO request) {
         User user = userRepository.findById(request.getUserId())
@@ -172,11 +176,46 @@ public class QueueService {
             } else {
                 System.err.println("⚠️ WARNING: User email is null or empty");
             }
+
+            // Create notification in a separate transaction to prevent rollback issues
+            try {
+                createQueueCalledNotification(user, service, branch, queue.getToken(), queueId);
+            } catch (Exception notifErr) {
+                System.err.println("❌ NOTIFICATION FAILED: " + notifErr.getMessage());
+                notifErr.printStackTrace();
+                // Don't throw exception - queue was already called successfully
+            }
+
             System.err.println("🔵 END: callQueue completed\n");
         } catch (Exception e) {
             System.err.println("❌ CRITICAL ERROR in callQueue: " + e.getMessage());
             e.printStackTrace();
             throw e;
+        }
+    }
+
+    /**
+     * Create notification in a separate transaction
+     * This prevents notification creation failures from rolling back the queue status update
+     */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void createQueueCalledNotification(User user, ServiceEntity service, Branch branch, String token, Long queueId) {
+        try {
+            String serviceName = service != null ? service.getName() : "Service";
+            String branchName = branch != null ? branch.getName() : "Counter";
+            
+            NotificationDTO notificationDTO = new NotificationDTO();
+            notificationDTO.setUserId(user.getUserId());
+            notificationDTO.setTitle("Queue Called");
+            notificationDTO.setMessage("Your queue token " + token + " is being called at " + branchName + " for " + serviceName);
+            notificationDTO.setType("QUEUE_CALLED");
+            notificationDTO.setQueueId(queueId);
+            
+            notificationService.createNotification(notificationDTO);
+            System.err.println("✅ SUCCESS: Notification created for user " + user.getUserId());
+        } catch (Exception e) {
+            System.err.println("⚠️ WARNING: Failed to create notification: " + e.getMessage());
+            // Log but don't throw - we don't want notification creation to affect queue status
         }
     }
 

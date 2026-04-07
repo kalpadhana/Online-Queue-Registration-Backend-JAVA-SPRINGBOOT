@@ -14,4 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Get the most recently registered user
     User findTopByOrderByUserIdDesc();
+
+    // Find a user by their full name
+    Optional<User> findByFullName(String fullName);
 }

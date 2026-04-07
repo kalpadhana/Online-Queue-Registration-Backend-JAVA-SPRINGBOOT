@@ -28,7 +28,9 @@ public class UserDTO {
     private String phone;
 
     private Long preferredBranchId;
+    private String preferredBranchName;
     private Boolean isActive;
+    private java.time.LocalDateTime memberSince;
     private java.time.LocalDateTime createdAt;
     private java.time.LocalDateTime updatedAt;
 

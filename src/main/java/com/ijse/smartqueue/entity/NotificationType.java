@@ -1,6 +1,6 @@
 package com.ijse.smartqueue.entity;
 
 public enum NotificationType {
-    SUCCESS, WARNING, INFO, ALERT
+    SUCCESS, WARNING, INFO, ALERT, QUEUE_CALLED
 }
 

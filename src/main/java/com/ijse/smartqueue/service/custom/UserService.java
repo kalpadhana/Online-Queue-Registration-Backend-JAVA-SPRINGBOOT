@@ -17,6 +17,8 @@ public interface UserService {
     List<UserDTO> getAllUsers();
 
     UserDTO authenticateUser(String email, String password);
+
+    UserDTO getUserByName(String name);
 }
 
 

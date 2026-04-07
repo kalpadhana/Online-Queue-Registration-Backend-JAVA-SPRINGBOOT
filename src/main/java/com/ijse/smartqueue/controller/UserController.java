@@ -64,4 +64,15 @@ public class UserController {
                     .body(new APIResponse<>(401, e.getMessage(), null));
         }
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<APIResponse<UserDTO>> getUserProfile(@RequestParam String name) {
+        try {
+            UserDTO user = userService.getUserByName(name);
+            return ResponseEntity.ok(new APIResponse<>(200, "Profile retrieved successfully", user));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new APIResponse<>(404, e.getMessage(), null));
+        }
+    }
 }

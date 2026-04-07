@@ -102,11 +102,20 @@ public class UserServiceImpl implements UserService {
         return convertToDTO(user);
     }
 
+    @Override
+    public UserDTO getUserByName(String name) {
+        User user = userRepository.findByFullName(name)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return convertToDTO(user);
+    }
+
     private UserDTO convertToDTO(User user) {
         UserDTO dto = modelMapper.map(user, UserDTO.class);
         if (user.getPreferredBranch() != null) {
             dto.setPreferredBranchId(user.getPreferredBranch().getBranchId());
+            dto.setPreferredBranchName(user.getPreferredBranch().getName());
         }
+        dto.setMemberSince(user.getMemberSince());
         return dto;
     }
 }
