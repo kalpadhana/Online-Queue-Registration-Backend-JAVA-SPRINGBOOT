@@ -115,39 +115,63 @@ public class EmailServiceImpl implements EmailService {
 
     private void sendHtmlEmail(String to, String subject, String htmlBody) {
         try {
-            System.err.println("📧 [EMAIL] Attempting to send HTML email");
-            System.err.println("   To: " + to);
-            System.err.println("   From: " + fromEmail);
-            System.err.println("   Subject: " + subject);
-            System.err.println("   Using MailSender: " + (mailSender != null ? "✅ Available" : "❌ NULL"));
+            System.out.println("\n╔════════════════════════════════════════════════════════╗");
+            System.out.println("║  [EmailServiceImpl] sendHtmlEmail                       ║");
+            System.out.println("╚════════════════════════════════════════════════════════╝");
+            System.out.println("📧 Email Details:");
+            System.out.println("   TO Address: " + (to != null ? to : "[NULL] ❌ CRITICAL!"));
+            System.out.println("   FROM Address: " + fromEmail);
+            System.out.println("   FROM Name: " + fromName);
+            System.out.println("   Subject: " + subject);
+            System.out.println("   TO is NULL: " + (to == null));
+            System.out.println("   TO is EMPTY: " + (to != null && to.isEmpty()));
+            
+            // CRITICAL CHECK
+            if (to == null || to.isEmpty()) {
+                System.out.println("❌ CRITICAL ERROR: TO address is NULL or EMPTY!");
+                System.out.println("   ❌ Email will NOT be sent!");
+                System.out.println("   ❌ Check that user.getEmail() is being passed correctly!");
+                return;
+            }
             
             if (mailSender == null) {
-                System.err.println("❌ ERROR: JavaMailSender is null! Email config not loaded.");
+                System.out.println("❌ ERROR: JavaMailSender is null!");
                 return;
             }
             
             MimeMessage message = mailSender.createMimeMessage();
-            System.err.println("   MimeMessage created: " + (message != null ? "✅" : "❌"));
-            
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            System.err.println("   MimeMessageHelper created: ✅");
             
+            // VERIFY BEFORE SENDING
+            System.out.println("\n✉️ Setting email properties:");
+            System.out.println("   🔄 setFrom(" + fromEmail + ", " + fromName + ")");
             helper.setFrom(fromEmail, fromName);
+            
+            System.out.println("   🔄 setTo(" + to + ")");
             helper.setTo(to);
+            
+            System.out.println("   🔄 setSubject(...)");
             helper.setSubject(subject);
+            
+            System.out.println("   🔄 setText(..., true)");
             helper.setText(htmlBody, true);
             
-            System.err.println("   Sending email...");
+            System.out.println("\n🚀 Sending MimeMessage...");
             mailSender.send(message);
-            System.err.println("✅ [EMAIL] HTML Email sent successfully to: " + to);
+            
+            System.out.println("✅ [EMAIL] HTML Email sent successfully!");
+            System.out.println("   FROM: " + fromEmail);
+            System.out.println("   TO: " + to);
+            System.out.println("   Subject: " + subject);
+            System.out.println("╔════════════════════════════════════════════════════════╗\n");
+            
         } catch (Exception e) {
-            System.err.println("❌ [EMAIL] FAILED to send HTML email to " + to);
-            System.err.println("   Exception type: " + e.getClass().getName());
-            System.err.println("   Message: " + e.getMessage());
-            if (e.getCause() != null) {
-                System.err.println("   Caused by: " + e.getCause().getMessage());
-            }
+            System.out.println("\n❌ [EMAIL] FAILED to send HTML email");
+            System.out.println("   TO: " + to);
+            System.out.println("   Exception: " + e.getClass().getName());
+            System.out.println("   Message: " + e.getMessage());
             e.printStackTrace();
+            System.out.println("╔════════════════════════════════════════════════════════╗\n");
         }
     }
 }

@@ -23,10 +23,23 @@ public class UserController {
     @PostMapping
     public ResponseEntity<APIResponse<Void>> saveUser(@RequestBody @Valid UserDTO userDTO) {
         try {
+            System.out.println("\n╔════════════════════════════════════════════════════════╗");
+            System.out.println("║  [UserController] POST /api/v1/user                    ║");
+            System.out.println("║  REGULAR SIGNUP (Not Google OAuth)                     ║");
+            System.out.println("╚════════════════════════════════════════════════════════╝");
+            System.out.println("📋 Received Request Data:");
+            System.out.println("   Full Name: " + userDTO.getFullName());
+            System.out.println("   Email: " + userDTO.getEmail());
+            System.out.println("   Phone: " + userDTO.getPhone());
+            System.out.println("   Password: " + (userDTO.getPassword() != null ? "[SET]" : "[NULL]"));
+            
             userService.saveUser(userDTO);
+            
+            System.out.println("✅ UserService.saveUser() completed successfully\n");
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body(new APIResponse<>(201, "User Registered Successfully", null));
         } catch (RuntimeException e) {
+            System.out.println("❌ Error: " + e.getMessage() + "\n");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new APIResponse<>(400, e.getMessage(), null));
         }
@@ -57,9 +70,24 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<APIResponse<UserDTO>> login(@RequestBody UserDTO loginRequest) {
         try {
+            System.out.println("\n╔════════════════════════════════════════════════════════╗");
+            System.out.println("║  [UserController] POST /api/v1/user/login              ║");
+            System.out.println("║  USER LOGIN ATTEMPT                                    ║");
+            System.out.println("╚════════════════════════════════════════════════════════╝");
+            System.out.println("📋 Login Request:");
+            System.out.println("   Email: " + loginRequest.getEmail());
+            System.out.println("   Password: " + (loginRequest.getPassword() != null ? "[PROVIDED]" : "[NULL]"));
+            
             UserDTO user = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+            
+            System.out.println("\n✅ Login Successful:");
+            System.out.println("   User ID: " + user.getUserId());
+            System.out.println("   Email: " + user.getEmail());
+            System.out.println("   Full Name: " + user.getFullName() + "\n");
+            
             return ResponseEntity.ok(new APIResponse<>(200, "Login successful", user));
         } catch (RuntimeException e) {
+            System.out.println("\n❌ Login Failed: " + e.getMessage() + "\n");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new APIResponse<>(401, e.getMessage(), null));
         }

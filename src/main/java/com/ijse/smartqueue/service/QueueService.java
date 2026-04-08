@@ -34,8 +34,32 @@ public class QueueService {
     private final TwilioService twilioService;
 
     public QueueDTO joinQueue(QueueRequestDTO request) {
+        System.out.println("\n\n╔════════════════════════════════════════════════════════╗");
+        System.out.println("║  [QueueService.joinQueue] USER JOINED QUEUE              ║");
+        System.out.println("╚════════════════════════════════════════════════════════╝");
+        System.out.println("🔷 Request Data:");
+        System.out.println("   User ID: " + request.getUserId());
+        System.out.println("   Service ID: " + request.getServiceId());
+        System.out.println("   Branch ID: " + request.getBranchId());
+        
+        // FETCH USER - First time
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        System.out.println("\n👤 User Retrieved from Database (First Fetch):");
+        System.out.println("   User ID: " + user.getUserId());
+        System.out.println("   Email: " + (user.getEmail() != null ? user.getEmail() : "[NULL]"));
+        System.out.println("   Full Name: " + user.getFullName());
+        System.out.println("   Phone: " + user.getPhone());
+        System.out.println("   Password: " + (user.getPassword() != null ? user.getPassword() : "[NULL]"));
+        
+        // Determine user type
+        String userType = "REGULAR SIGNUP";
+        if (user.getPassword() != null && user.getPassword().equals("GOOGLE_OAUTH")) {
+            userType = "🔵 GOOGLE OAUTH";
+        }
+        System.out.println("   User Type: " + userType);
+        
         ServiceEntity service = serviceRepository.findById(request.getServiceId())
                 .orElseThrow(() -> new RuntimeException("Service not found"));
         Branch branch = branchRepository.findById(request.getBranchId())
@@ -79,6 +103,61 @@ public class QueueService {
         queue.setUpdatedAt(LocalDateTime.now());
 
         QueueEntity saved = queueRepository.save(queue);
+        
+        // RE-FETCH USER FROM DATABASE to verify email is persisted
+        System.out.println("\n🔄 RE-FETCHING User from Database (Verify Email Persistence):");
+        User userRefresh = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found on refresh"));
+        System.out.println("   User ID: " + userRefresh.getUserId());
+        System.out.println("   Email from DB: " + (userRefresh.getEmail() != null ? userRefresh.getEmail() : "[NULL] ❌ EMAIL NOT SAVED!"));
+        System.out.println("   Full Name: " + userRefresh.getFullName());
+        
+        // SEND EMAIL TO USER - Works for ALL user types (Google OAuth, regular signup, etc)
+        System.out.println("\n📧 EMAIL SENDING PHASE:");
+        System.out.println("   User Email Value (From First Fetch): " + (user.getEmail() != null ? user.getEmail() : "[NULL]"));
+        System.out.println("   User Email Value (From Refresh): " + (userRefresh.getEmail() != null ? userRefresh.getEmail() : "[NULL]"));
+        System.out.println("   Email is Null: " + (userRefresh.getEmail() == null));
+        System.out.println("   Email is Empty: " + (userRefresh.getEmail() != null && userRefresh.getEmail().isEmpty()));
+        
+        // Use the refreshed user with fresh database data
+        User finalUser = userRefresh;
+        
+        if (finalUser.getEmail() != null && !finalUser.getEmail().isEmpty()) {
+            try {
+                String userName = finalUser.getFullName() != null ? finalUser.getFullName() : finalUser.getPhone();
+                String serviceName = service != null ? service.getName() : "Service";
+                String branchName = branch != null ? branch.getName() : "Branch";
+                
+                System.out.println("   ✉️ Email Details:");
+                System.out.println("      To: " + finalUser.getEmail());
+                System.out.println("      User Name: " + userName);
+                System.out.println("      Service: " + serviceName);
+                System.out.println("      Branch: " + branchName);
+                System.out.println("      Position: " + position);
+                System.out.println("      Token: " + saved.getToken());
+                
+                System.out.println("   ⏳ Calling emailService.sendQueueConfirmationEmail()...");
+                emailService.sendQueueConfirmationEmail(
+                        finalUser.getEmail(),
+                        userName,
+                        saved.getToken(),
+                        serviceName,
+                        branchName,
+                        position
+                );
+                System.out.println("   ✅ Email method completed without exception");
+            } catch (Exception mailErr) {
+                System.err.println("   ❌ EMAIL EXCEPTION: " + mailErr.getClass().getName());
+                System.err.println("   ❌ Message: " + mailErr.getMessage());
+                mailErr.printStackTrace();
+            }
+        } else {
+            System.err.println("   ⚠️ SKIPPING EMAIL SEND:");
+            System.err.println("      Reason: Email is " + (user.getEmail() == null ? "NULL" : "EMPTY"));
+        }
+        
+        System.out.println("╔════════════════════════════════════════════════════════╗\n");
+        
         return modelMapper.map(saved, QueueDTO.class);
     }
 

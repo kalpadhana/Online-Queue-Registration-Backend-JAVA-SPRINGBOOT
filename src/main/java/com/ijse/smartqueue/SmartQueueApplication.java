@@ -30,15 +30,9 @@ public class SmartQueueApplication {
     @Bean
     public CommandLineRunner initData(UserRepository userRepo, BranchRepository branchRepo, ServiceRepository serviceRepo) {
         return args -> {
-            if (userRepo.count() == 0) {
-                User testUser = new User();
-                testUser.setFullName("Test User");
-                testUser.setEmail("test@test.com");
-                testUser.setPassword("123");
-                testUser.setPhone("123");
-                testUser.setMemberSince(LocalDateTime.now());
-                userRepo.save(testUser);
-            }
+            // DO NOT CREATE TEST USERS - causes cross-user email issue
+            // Users must be created through proper registration/signup
+            
             if (branchRepo.count() == 0) {
                 Branch branch1 = new Branch();
                 branch1.setName("Downtown Branch");
