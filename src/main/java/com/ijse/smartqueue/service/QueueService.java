@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings("null")
 public class QueueService {
     private final QueueEntityRepository queueRepository;
     private final UserRepository userRepository;
     private final ServiceRepository serviceRepository;
     private final BranchRepository branchRepository;
-    private final QueueHistoryRepository historyRepository;
     private final ModelMapper modelMapper;
     private final EmailService emailService;
     private final NotificationService notificationService;
@@ -399,32 +399,6 @@ public class QueueService {
                 .collect(Collectors.toList());
     }
 
-    public Map<String, Object> getQueueDetails(String token) {
-        QueueEntity queue = queueRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Queue entry not found"));
-
-        Map<String, Object> details = new LinkedHashMap<>();
-        details.put("queueId", queue.getQueueId());
-        details.put("token", queue.getToken());
-        details.put("serviceName", queue.getService().getName());
-        details.put("serviceId", queue.getService().getServiceId());
-        details.put("branchName", queue.getBranch().getName());
-        details.put("branchId", queue.getBranch().getBranchId());
-        details.put("position", queue.getPosition());
-        details.put("status", queue.getStatus().toString());
-        details.put("priority", queue.getPriority().toString());
-        details.put("estimatedWaitTime", queue.getEstimatedWaitTime());
-        details.put("joinedTime", queue.getJoinedTime());
-        details.put("calledTime", queue.getCalledTime());
-        details.put("serveStartTime", queue.getServeStartTime());
-        details.put("completedTime", queue.getCompletedTime());
-        details.put("actualServiceDuration", queue.getActualServiceDuration());
-        details.put("createdAt", queue.getCreatedAt());
-        details.put("updatedAt", queue.getUpdatedAt());
-        
-        return details;
-    }
-
     public List<String> getUpcomingQueueTokens(Long branchId, Long serviceId, int limit) {
         List<QueueEntity> upcomingQueues = queueRepository.findByServiceIdAndBranchIdAndStatus(serviceId, branchId, QueueStatus.WAITING)
                 .stream()
@@ -466,6 +440,7 @@ public class QueueService {
                     dto.setPosition(q.getPosition());
                     dto.setStatus(q.getStatus().toString());
                     dto.setPriority(q.getPriority().toString());
+                    dto.setIsPriority(q.getPriority() != PriorityLevel.NORMAL);
                     dto.setJoinedTime(q.getJoinedTime());
                     dto.setCalledTime(q.getCalledTime());
                     dto.setServeStartTime(q.getServeStartTime());
@@ -477,6 +452,102 @@ public class QueueService {
                     return dto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public QueueDTO updateQueue(Long queueId, QueueDTO queueDTO) {
+        QueueEntity queue = queueRepository.findById(queueId)
+                .orElseThrow(() -> new RuntimeException("Queue not found with id: " + queueId));
+        
+        // Update priority if isPriority flag is present
+        if (queueDTO.getIsPriority() != null && queueDTO.getIsPriority()) {
+            queue.setPriority(PriorityLevel.GOLD);
+        } else if (queueDTO.getIsPriority() != null && !queueDTO.getIsPriority()) {
+            queue.setPriority(PriorityLevel.NORMAL);
+        }
+        
+        // Update other fields if provided
+        if (queueDTO.getStatus() != null && !queueDTO.getStatus().isEmpty()) {
+            try {
+                queue.setStatus(QueueStatus.valueOf(queueDTO.getStatus()));
+            } catch (IllegalArgumentException e) {
+                // Status not valid, skip update
+            }
+        }
+        
+        queue.setUpdatedAt(LocalDateTime.now());
+        queueRepository.save(queue);
+        
+        // Convert back to DTO
+        QueueDTO updatedDTO = new QueueDTO();
+        updatedDTO.setQueueId(queue.getQueueId());
+        updatedDTO.setToken(queue.getToken());
+        updatedDTO.setUserId(queue.getUser().getUserId());
+        updatedDTO.setServiceId(queue.getService().getServiceId());
+        updatedDTO.setBranchId(queue.getBranch().getBranchId());
+        updatedDTO.setPosition(queue.getPosition());
+        updatedDTO.setStatus(queue.getStatus().toString());
+        updatedDTO.setPriority(queue.getPriority().toString());
+        updatedDTO.setIsPriority(queue.getPriority() != PriorityLevel.NORMAL);
+        updatedDTO.setJoinedTime(queue.getJoinedTime());
+        updatedDTO.setCalledTime(queue.getCalledTime());
+        updatedDTO.setServeStartTime(queue.getServeStartTime());
+        updatedDTO.setCompletedTime(queue.getCompletedTime());
+        updatedDTO.setEstimatedWaitTime(queue.getEstimatedWaitTime());
+        updatedDTO.setActualServiceDuration(queue.getActualServiceDuration());
+        updatedDTO.setCreatedAt(queue.getCreatedAt());
+        updatedDTO.setUpdatedAt(queue.getUpdatedAt());
+        
+        return updatedDTO;
+    }
+
+    public Map<String, Object> getQueueDetails(String token) {
+        QueueEntity queue = queueRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Queue not found with token: " + token));
+        
+        Map<String, Object> details = new LinkedHashMap<>();
+        details.put("queueId", queue.getQueueId());
+        details.put("token", queue.getToken());
+        details.put("position", queue.getPosition());
+        details.put("status", queue.getStatus().toString());
+        details.put("priority", queue.getPriority().toString());
+        details.put("user", mapUserToMap(queue.getUser()));
+        details.put("service", mapServiceToMap(queue.getService()));
+        details.put("branch", mapBranchToMap(queue.getBranch()));
+        details.put("estimatedWaitTime", queue.getEstimatedWaitTime());
+        details.put("actualServiceDuration", queue.getActualServiceDuration());
+        details.put("joinedTime", queue.getJoinedTime());
+        details.put("calledTime", queue.getCalledTime());
+        details.put("serveStartTime", queue.getServeStartTime());
+        details.put("completedTime", queue.getCompletedTime());
+        details.put("createdAt", queue.getCreatedAt());
+        details.put("updatedAt", queue.getUpdatedAt());
+        
+        return details;
+    }
+
+    private Map<String, Object> mapUserToMap(User user) {
+        Map<String, Object> userMap = new LinkedHashMap<>();
+        userMap.put("userId", user.getUserId());
+        userMap.put("fullName", user.getFullName());
+        userMap.put("email", user.getEmail());
+        userMap.put("phone", user.getPhone());
+        return userMap;
+    }
+
+    private Map<String, Object> mapServiceToMap(ServiceEntity service) {
+        Map<String, Object> serviceMap = new LinkedHashMap<>();
+        serviceMap.put("serviceId", service.getServiceId());
+        serviceMap.put("name", service.getName());
+        serviceMap.put("description", service.getDescription());
+        return serviceMap;
+    }
+
+    private Map<String, Object> mapBranchToMap(Branch branch) {
+        Map<String, Object> branchMap = new LinkedHashMap<>();
+        branchMap.put("branchId", branch.getBranchId());
+        branchMap.put("name", branch.getName());
+        branchMap.put("address", branch.getAddress());
+        return branchMap;
     }
 }
 

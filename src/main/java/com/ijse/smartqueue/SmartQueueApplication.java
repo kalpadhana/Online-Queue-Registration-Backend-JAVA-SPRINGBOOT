@@ -8,12 +8,12 @@ import org.springframework.context.annotation.Bean;
 
 import com.ijse.smartqueue.entity.Branch;
 import com.ijse.smartqueue.entity.ServiceEntity;
-import com.ijse.smartqueue.entity.User;
+
 import com.ijse.smartqueue.repository.BranchRepository;
 import com.ijse.smartqueue.repository.ServiceRepository;
 import com.ijse.smartqueue.repository.UserRepository;
 
-import java.time.LocalDateTime;
+
 
 @SpringBootApplication
 public class SmartQueueApplication {

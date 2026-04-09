@@ -44,7 +44,7 @@ public class AuthController {
 
             String email = (String) userInfo.get("email");
             String fullName = (String) userInfo.get("name");
-            String picture = (String) userInfo.get("picture");
+            // String picture = (String) userInfo.get("picture"); // Unused
 
             System.out.println("✅ Google token verified - Email: " + email);
 

@@ -21,35 +21,35 @@ public class AdminStaffController {
     private final AdminStaffService adminStaffService;
 
     @PostMapping("/register")
-    public ResponseEntity<APIResponse> registerAdminStaff(@Valid @RequestBody AdminStaffDTO adminStaffDTO) {
+    public ResponseEntity<APIResponse<AdminStaffDTO>> registerAdminStaff(@Valid @RequestBody AdminStaffDTO adminStaffDTO) {
         AdminStaffDTO createdStaff = adminStaffService.createAdminStaff(adminStaffDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new APIResponse("Admin Staff registered successfully", createdStaff));
+                .body(new APIResponse<>("Admin Staff registered successfully", createdStaff));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse> updateAdminStaff(@PathVariable Long id, @Valid @RequestBody AdminStaffDTO adminStaffDTO) {
+    public ResponseEntity<APIResponse<AdminStaffDTO>> updateAdminStaff(@PathVariable Long id, @Valid @RequestBody AdminStaffDTO adminStaffDTO) {
         AdminStaffDTO updatedStaff = adminStaffService.updateAdminStaff(id, adminStaffDTO);
-        return ResponseEntity.ok(new APIResponse("Admin Staff updated successfully", updatedStaff));
+        return ResponseEntity.ok(new APIResponse<>("Admin Staff updated successfully", updatedStaff));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<APIResponse> getAdminStaffById(@PathVariable Long id) {
+    public ResponseEntity<APIResponse<AdminStaffDTO>> getAdminStaffById(@PathVariable Long id) {
         AdminStaffDTO existingStaff = adminStaffService.getAdminStaffById(id);
-        return ResponseEntity.ok(new APIResponse("Admin Staff retrieved successfully", existingStaff));
+        return ResponseEntity.ok(new APIResponse<>("Admin Staff retrieved successfully", existingStaff));
     }
 
     @GetMapping
-    public ResponseEntity<APIResponse> getAllAdminStaff() {
+    public ResponseEntity<APIResponse<List<AdminStaffDTO>>> getAllAdminStaff() {
         List<AdminStaffDTO> allStaff = adminStaffService.getAllAdminStaff();
-        return ResponseEntity.ok(new APIResponse("All Admin Staff retrieved successfully", allStaff));
+        return ResponseEntity.ok(new APIResponse<>("All Admin Staff retrieved successfully", allStaff));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<APIResponse> deleteAdminStaff(@PathVariable Long id) {
+    public ResponseEntity<APIResponse<Object>> deleteAdminStaff(@PathVariable Long id) {
         adminStaffService.deleteAdminStaff(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT)
-                .body(new APIResponse("Admin Staff deleted successfully", null));
+                .body(new APIResponse<>("Admin Staff deleted successfully", null));
     }
 }
 

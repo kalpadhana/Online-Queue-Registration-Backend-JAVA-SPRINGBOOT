@@ -17,21 +17,21 @@ public class UserPreferencesController {
     private final UserPreferencesService userPreferencesService;
 
     @PutMapping
-    public ResponseEntity<APIResponse> saveOrUpdatePreferences(@Valid @RequestBody UserPreferencesDTO dto) {
+    public ResponseEntity<APIResponse<UserPreferencesDTO>> saveOrUpdatePreferences(@Valid @RequestBody UserPreferencesDTO dto) {
         UserPreferencesDTO updated = userPreferencesService.saveOrUpdatePreferences(dto);
-        return ResponseEntity.ok(new APIResponse("User Preferences updated successfully", updated));
+        return ResponseEntity.ok(new APIResponse<>("User Preferences updated successfully", updated));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<APIResponse> getPreferencesByUserId(@PathVariable Long userId) {
+    public ResponseEntity<APIResponse<UserPreferencesDTO>> getPreferencesByUserId(@PathVariable Long userId) {
         UserPreferencesDTO preferences = userPreferencesService.getPreferencesByUserId(userId);
-        return ResponseEntity.ok(new APIResponse("User Preferences retrieved successfully", preferences));
+        return ResponseEntity.ok(new APIResponse<>("User Preferences retrieved successfully", preferences));
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<APIResponse> deletePreferences(@PathVariable Long id) {
+    public ResponseEntity<APIResponse<Object>> deletePreferences(@PathVariable Long id) {
         userPreferencesService.deletePreferences(id);
-        return ResponseEntity.ok(new APIResponse("User Preferences deleted successfully", null));
+        return ResponseEntity.ok(new APIResponse<>("User Preferences deleted successfully", null));
     }
 }
 

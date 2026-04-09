@@ -1,7 +1,7 @@
 package com.ijse.smartqueue.service.custom;
 
 import com.ijse.smartqueue.dto.PriorityUserDTO;
-import java.util.List;
+
 
 public interface PriorityUserService {
     PriorityUserDTO createPriorityUser(PriorityUserDTO dto);

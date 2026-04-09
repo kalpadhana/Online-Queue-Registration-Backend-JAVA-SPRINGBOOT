@@ -17,6 +17,7 @@ public class QueueDTO {
     private Integer position;
     private String status;
     private String priority;
+    private Boolean isPriority;
     private LocalDateTime joinedTime;
     private LocalDateTime calledTime;
     private LocalDateTime serveStartTime;

@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@SuppressWarnings("null")
 public class AdminStaffServiceImpl implements AdminStaffService {
 
     private final AdminStaffRepository adminStaffRepository;

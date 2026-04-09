@@ -336,7 +336,7 @@ public class TwilioService {
                 position
             );
 
-            Message message = Message.creator(
+            Message.creator(
                     new PhoneNumber(formattedPhoneNumber),
                     new PhoneNumber(twilioPhoneNumber),
                     messageBody)
@@ -372,7 +372,7 @@ public class TwilioService {
                 queueToken
             );
 
-            Message message = Message.creator(
+            Message.creator(
                     new PhoneNumber(formattedPhoneNumber),
                     new PhoneNumber(twilioPhoneNumber),
                     messageBody)

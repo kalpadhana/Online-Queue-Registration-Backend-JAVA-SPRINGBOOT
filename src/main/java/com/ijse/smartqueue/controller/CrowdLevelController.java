@@ -18,21 +18,21 @@ public class CrowdLevelController {
     private final CrowdLevelService crowdLevelService;
 
     @GetMapping
-    public ResponseEntity<APIResponse> getAllCrowdLevels() {
+    public ResponseEntity<APIResponse<List<CrowdLevelDTO>>> getAllCrowdLevels() {
         List<CrowdLevelDTO> levels = crowdLevelService.getAllCrowdLevels();
-        return ResponseEntity.ok(new APIResponse("All crowd levels retrieved successfully", levels));
+        return ResponseEntity.ok(new APIResponse<>("All crowd levels retrieved successfully", levels));
     }
 
     @GetMapping("/{branchId}")
-    public ResponseEntity<APIResponse> getCrowdLevelByBranchId(@PathVariable Long branchId) {
+    public ResponseEntity<APIResponse<CrowdLevelDTO>> getCrowdLevelByBranchId(@PathVariable Long branchId) {
         CrowdLevelDTO level = crowdLevelService.getCrowdLevelByBranchId(branchId);
-        return ResponseEntity.ok(new APIResponse("Crowd level retrieved successfully", level));
+        return ResponseEntity.ok(new APIResponse<>("Crowd level retrieved successfully", level));
     }
     
     @PutMapping("/update/{branchId}")
-    public ResponseEntity<APIResponse> updateCrowdLevel(@PathVariable Long branchId) {
+    public ResponseEntity<APIResponse<CrowdLevelDTO>> updateCrowdLevel(@PathVariable Long branchId) {
         CrowdLevelDTO updated = crowdLevelService.updateCrowdLevel(branchId);
-        return ResponseEntity.ok(new APIResponse("Crowd level updated successfully", updated));
+        return ResponseEntity.ok(new APIResponse<>("Crowd level updated successfully", updated));
     }
 }
 

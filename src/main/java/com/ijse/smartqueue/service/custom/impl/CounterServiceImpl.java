@@ -15,6 +15,7 @@ import java.util.List;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class CounterServiceImpl implements CounterService {
 
     private final ServiceCounterRepository counterRepository;

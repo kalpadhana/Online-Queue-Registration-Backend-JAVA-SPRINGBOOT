@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
+
 import java.util.List;
 import java.util.Map;
 
@@ -99,6 +99,12 @@ public class NewQueueController {
     public ResponseEntity<APIResponse<Void>> callQueue(@PathVariable Long id) {
         queueService.callQueue(id);
         return ResponseEntity.ok(new APIResponse<>(200, "Queue called successfully - Email notification sent", null));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<APIResponse<QueueDTO>> updateQueue(@PathVariable Long id, @RequestBody QueueDTO queueDTO) {
+        QueueDTO updatedQueue = queueService.updateQueue(id, queueDTO);
+        return ResponseEntity.ok(new APIResponse<>(200, "Queue updated successfully", updatedQueue));
     }
 }
 

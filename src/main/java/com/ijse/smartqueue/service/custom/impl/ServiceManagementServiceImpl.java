@@ -12,6 +12,7 @@ import java.util.List;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
+@SuppressWarnings("null")
 public class ServiceManagementServiceImpl implements ServiceManagementService {
 
     private final ServiceRepository serviceRepository;
